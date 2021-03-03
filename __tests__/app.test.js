@@ -31,35 +31,73 @@ describe('app routes', () => {
       return client.end(done);
     });
 
-    test('returns animals', async() => {
+    const todo = {
+      todo: 'get newspaper',
+      completed: false,
+    };
 
-      const expectation = [
-        {
-          'id': 1,
-          'name': 'bessie',
-          'coolfactor': 3,
-          'owner_id': 1
-        },
-        {
-          'id': 2,
-          'name': 'jumpy',
-          'coolfactor': 4,
-          'owner_id': 1
-        },
-        {
-          'id': 3,
-          'name': 'spot',
-          'coolfactor': 10,
-          'owner_id': 1
-        }
-      ];
+    const todoResult = {
+      ...todo,
+      user_id: 2,
+      id: 6
+    };
+
+    test('creates an item for todo list', async() => {
 
       const data = await fakeRequest(app)
-        .get('/animals')
+        .post('/api/todos')
+        .set('Authorization', token)
+        .send(todo)
         .expect('Content-Type', /json/)
         .expect(200);
 
-      expect(data.body).toEqual(expectation);
+      expect(data.body).toEqual(todoResult);
     });
+
+    test('gets the todo list for the user', async() => {
+
+      const data = await fakeRequest(app)
+        .get('/api/todos')
+        .set('Authorization', token)
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(data.body[0]).toEqual(todoResult);
+    });
+
+    test('gets an item in the todo list', async() => {
+
+      const data = await fakeRequest(app)
+        .get('/api/todos/6')
+        .set('Authorization', token)
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(data.body).toEqual(todoResult);
+    });
+
+    test('updates completed to true on an item in the todo list', async() => {
+
+      const updatedTodo = {
+        todo: 'get newspaper',
+        completed: true,
+      };
+
+      const updatedTodoResult = {
+        ...updatedTodo,
+        user_id: 2,
+        id: 6
+      };
+
+      const data = await fakeRequest(app)
+        .put('/api/todos/6')
+        .set('Authorization', token)
+        .send(updatedTodo)
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(data.body).toEqual(updatedTodoResult);
+    });
+
   });
 });
